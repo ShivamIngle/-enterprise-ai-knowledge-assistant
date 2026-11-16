@@ -1,0 +1,55 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: enterprise-ai-assistant
+  labels:
+    app: enterprise-ai-assistant
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: enterprise-ai-assistant
+  template:
+    metadata:
+      labels:
+        app: enterprise-ai-assistant
+    spec:
+      containers:
+        - name: ai-assistant
+          image: enterprise-ai-assistant-ai-assistant:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          env:
+            - name: OLLAMA_URL
+              value: "http://host.docker.internal:11434"
+            - name: LLM_MODEL
+              value: "llama3.2:3b"
+            - name: EMBEDDING_MODEL
+              value: "nomic-embed-text:latest"
+            - name: UPLOAD_DIR
+              value: "/app/data/uploads"
+            - name: CHROMA_DIR
+              value: "/app/data/chroma_db"
+          volumeMounts:
+            - name: assistant-data
+              mountPath: /app/data
+      volumes:
+        - name: assistant-data
+          persistentVolumeClaim:
+            claimName: assistant-data-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: enterprise-ai-assistant
+spec:
+  type: NodePort
+  selector:
+    app: enterprise-ai-assistant
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+      nodePort: 30080

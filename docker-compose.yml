@@ -1,0 +1,28 @@
+
+services:
+
+  ai-assistant:
+
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: enterprise-ai-assistant
+
+    ports:
+      - "8000:8000"
+
+    environment:
+      OLLAMA_URL: http://host.docker.internal:11434
+      LLM_MODEL: llama3.2:3b
+      EMBEDDING_MODEL: nomic-embed-text:latest
+      UPLOAD_DIR: /app/data/uploads
+      CHROMA_DIR: /app/data/chroma_db
+
+    volumes:
+      - ./data:/app/data
+
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+    restart: unless-stopped
